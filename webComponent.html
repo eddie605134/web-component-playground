@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <template id="user-card-template">
+    <style>
+      /* 在 Shadow DOM 中定義的樣式僅影響 Shadow DOM 內的元素 */
+      .user-card {
+        border: 1px solid #ccc;
+        padding: 16px;
+        margin: 16px;
+        border-radius: 8px;
+        background: #fff;
+      }
+      .user-card h3 {
+        margin: 0;
+      }
+      .user-card p {
+        margin: 0;
+        color: #888;
+      }
+    </style>
+    <div class="user-card">
+      <h3></h3>
+      <p></p>
+    </div>
+  </template>
+  <script>
+    class UserCard extends HTMLElement {
+      constructor() {
+        super();
+  
+        // 創建一個 shadow root
+        const shadowRoot = this.attachShadow({ mode: 'open' });
+  
+        // 克隆模板並將其添加到 shadow DOM
+        const template = document.getElementById('user-card-template');
+        const templateContent = template.content;
+        shadowRoot.appendChild(templateContent.cloneNode(true));
+      }
+
+      static get observedAttributes() {
+        return ['name', 'email'];
+      }
+
+      attributeChangedCallback(name, oldValue, newValue) {
+        // 当 name 或 email 属性变化时，更新 shadow DOM
+        if (name === 'name') {
+          this.shadowRoot.querySelector('h3').innerText = newValue;
+        } else if (name === 'email') {
+          this.shadowRoot.querySelector('p').innerText = newValue;
+        }
+      }
+  
+      connectedCallback() {
+        // 當元素被插入 DOM 時，填充內容
+        this.shadowRoot.querySelector('h3').innerText = this.getAttribute('name');
+        this.shadowRoot.querySelector('p').innerText = this.getAttribute('email');
+
+        this.addEventListener('click', () => {
+          this.dispatchEvent(new CustomEvent('user-card-clicked', {
+            detail: {
+              name: this.getAttribute('name'),
+              email: this.getAttribute('email')
+            }
+          }));
+        });
+      }
+    }
+  
+    // 定義自定義元素
+    customElements.define('user-card', UserCard);
+    
+  </script>
+
+  <user-card id="card1" name="John Doe" email="john.doe@example.com"></user-card>
+  <button id="btn">更新card</button>
+  <div id="test-content"></div>
+
+  <script>
+    document.querySelector('#card1').addEventListener('user-card-clicked', event => {
+      console.log('User card clicked:', event.detail);
+    });
+
+    const btn = document.querySelector('#btn');
+    btn.addEventListener('click', () => {
+      document.querySelector('user-card').setAttribute('name', 'John5');
+      document.querySelector('user-card').setAttribute('email', 'XXXXXXXXXXX');
+    });
+
+    const cardsJson = [
+      {
+        name: 'John Doe3',
+        email: 'OOOOOOOOOOOOOOOO'
+      },
+      {
+        name: 'Jane Doe4',
+        email: 'XXXXXXXXXXXXXXXX'
+      }
+    ];
+
+    const testContent = document.querySelector('#test-content');
+    cardsJson.forEach(card => {
+      const cardElement = document.createElement('user-card');
+      cardElement.setAttribute('name', card.name);
+      cardElement.setAttribute('email', card.email);
+      testContent.appendChild(cardElement);
+    });
+
+
+  </script>
+</body>
+</html>
